@@ -1,0 +1,82 @@
+ID,SiteName,Lat,Long,Elevation,BAM,PM2.5,PM10,O3,SO2,NO2,Date,Environment,Region,Owner,Purpose,Half
+4,Aberdeen-Division St,46.97228,-123.83173,1,N,N,N,N,N,N,8/16/2002,NA,Grays Harbor,ORCAA,Air Quality,Westside
+141,Anacortes 202 O Avenue,48.52059,-122.61428,7,Y,Y,N,Y,Y,N,10/12/2011,Urban,Skagit,NWCAA,Air Quality,Westside
+119,Anacortes-Bartholomew Rd,48.4654,-122.56,10,N,Y,N,N,Y,N,2/17/2009,Suburban,Skagit,NWCAA,Air Quality,Westside
+196,Auburn M St SE,47.2875,-122.2144,4,Y,Y,N,N,N,N,1/19/2018,NA,King,PSCAA,Air Quality,Westside
+190,Bellevue-SE 12th St,47.60086,-122.1484,92,N,Y,N,N,N,N,11/10/2016,NA,King,Ecology,Air Quality,Westside
+195,Bellingham-Pacific St,48.76004,-122.45646,0,N,Y,N,N,N,N,1/1/2018,NA,Whatcom,NWCAA,Air Quality,Westside
+151,Bremerton-Spruce Ave,47.59268,-122.62739,78,Y,Y,N,N,N,N,4/30/2012,Suburban,Kitsap,PSCAA,Air Quality,Westside
+8,Burbank-Maple St,46.20011,-119.00862,111,N,N,Y,N,N,N,11/13/2006,Suburban,Walla Walla,Ecology,Air Quality,Eastside
+9,Cheeka Peak,48.29786,-124.62491,478,N,Y,N,Y,Y,Y,11/13/2006,Rural,Clallam,ORCAA,Air Quality,Westside
+126,Chehalis-Market Blvd,46.66409,-122.96732,72,N,Y,N,N,N,N,12/29/2009,Urban,Lewis,Ecology,Air Quality,Westside
+10,Chelan-Woodin Ave,47.83861,-120.02306,327,N,Y,N,N,N,N,11/13/2006,NA,Chelan,USFS,Smoke Network,Eastside
+11,Cheney-Turnbull,47.4164,-117.52982,691,Y,N,Y,Y,N,N,11/13/2006,Rural,Spokane,Ecology,Air Quality,Eastside
+13,Clarkston-13th St,46.42542,-117.06045,250,N,Y,N,N,N,N,11/13/2006,Suburban,Asotin,Ecology,Air Quality,Eastside
+155,Colbert-Greenbluff Rd,47.80823,-117.34327,577,N,Y,N,N,N,N,4/11/2013,Suburban,Spokane,SRCAA,Air Quality,Eastside
+173,Colville-E 1st St,48.54469,-117.90322,488,N,Y,Y,N,N,N,11/2/2015,NA,Stevens,Ecology,Smoke Network,Eastside
+15,Custer-Loomis,48.95074,-122.55441,5,N,Y,N,Y,Y,N,11/13/2006,Rural,Whatcom,NWCAA,Air Quality,Westside
+16,Darrington-Fir St,48.2468,-121.6031,182,Y,Y,N,N,N,N,11/13/2006,Urban,Snohomish,PSCAA,Air Quality,Westside
+116,Dayton-W Main St,46.318,-117.985,464,N,Y,N,N,N,N,11/7/2008,Rural,Columbia,Ecology,Air Quality,Eastside
+17,Ellensburg-Ruby St,46.99364,-120.545,500,Y,Y,N,N,N,N,11/13/2006,Suburban,Kittitas,Ecology,Air Quality,Eastside
+18,Enumclaw-Mud Mtn.,47.1411,-121.9379,402,N,N,N,Y,N,N,11/13/2006,Rural,King,Ecology,Air Quality,Westside
+184,Ferndale-Kickerville Road,48.85527,-122.7047,0,N,N,N,N,Y,N,7/28/2016,NA,Whatcom,ALCOA,Air Quality,Westside
+188,Ferndale-Mountain View Rd,48.84807,-122.68889,36,N,N,N,N,Y,N,9/6/2016,NA,Whatcom,ALCOA,Air Quality,Westside
+19,Issaquah-Lake Sammamish,47.5525,-122.06472,15,N,N,N,Y,N,N,11/14/2006,Suburban,King,Ecology,Air Quality,Westside
+20,Kennewick-Metaline,46.21835,-119.20152,162,Y,Y,Y,N,N,N,11/14/2006,Suburban,Benton,BCAA,Air Quality,Eastside
+167,Kennewick-S Clodfelter Rd,46.20458,-119.24374,162,N,N,N,Y,N,N,6/10/2015,NA,Benton,BCAA,Air Quality,Eastside
+2,Kent-Central & James,47.38614,-122.23195,14,Y,Y,N,N,N,N,8/23/2006,Urban,King,PSCAA,Air Quality,Westside
+21,LaCrosse-Hill St,46.8153,-117.8739,468,N,N,N,N,N,N,6/1/2008,Rural,Whitman,Ecology,Smoke Network,Eastside
+1,Lacey-College St,47.0294,-122.82155,70,N,Y,Y,Y,N,N,8/23/2006,Suburban,Thurston,ORCAA,Air Quality,Westside
+23,Lake Forest Park-Town Center,47.75452,-122.28034,16,N,Y,N,N,N,N,11/14/2006,Suburban,King,PSCAA,Air Quality,Westside
+24,Leavenworth-Evans St,47.5986,-120.6647,357,N,Y,N,N,N,N,11/14/2006,Urban,Chelan,USFS,Smoke Network,Eastside
+25,Longview-30th Ave,46.13944,-122.96194,13,N,Y,N,N,N,N,11/14/2006,Suburban,Cowlitz,SWCAA,Air Quality,Westside
+26,Lynnwood-212 (ULT),47.8064,-122.3167,99,N,N,N,N,N,N,11/14/2006,Suburban,Snohomish,PSCAA,Air Quality,Westside
+189,Malaga-Malaga Hwy,47.33444,-120.0956,20,N,N,N,N,Y,N,11/15/2016,NA,Chelan,ALCOA,Air Quality,Eastside
+143,Maple Falls - Azure Way,48.9477,-122.1471,50,N,Y,N,N,N,N,11/29/2011,Urban,Whatcom,NWCAA,Air Quality,Westside
+27,Marysville-7th Ave,48.05432,-122.17153,2,Y,Y,N,N,N,N,11/14/2006,Suburban,Snohomish,PSCAA,Air Quality,Westside
+29,Mesa-Pepiot Way,46.5754,-119.0021,224,N,Y,N,N,N,N,11/14/2006,Rural,Franklin,Ecology,Smoke Network,Eastside
+191,Mobile-Pomeroy,46.47444,-117.61476,549,N,Y,N,N,N,N,5/4/2017,Suburban,Garfield,Ecology,Air Quality,Eastside
+198,Mobile-WhiteSalmon,45.73593,-121.4884,270,N,Y,N,N,N,N,6/7/2018,NA,Klickitat,Ecology,Air Quality,Westside
+30,Moses Lake-Balsam St,47.1303,-119.2737,322,N,Y,N,N,N,N,11/14/2006,Urban,Grant,Ecology,Smoke Network,Eastside
+31,Mt Rainier-Jackson Visitors Ctr,46.7841,-121.74367,1782,N,N,N,Y,N,N,8/1/2008,NA,Pierce,Ecology,Air Quality,Eastside
+32,Mt Vernon-S Second St,48.4102,-122.3376,7,N,Y,N,N,N,N,11/14/2006,Suburban,Whatcom,NWCAA,Air Quality,Westside
+79,Neah Bay 2-Makah Tribe,48.37197,-124.5947,20,N,N,N,N,N,N,10/8/2007,NA,Clallam,Tribal Nation,Air Quality,Westside
+77,North Bend-North Bend Way,47.49022,-121.77278,140,N,Y,N,Y,N,N,11/14/2006,Rural,King,Ecology,Air Quality,Westside
+118,Oak Harbor-SW 6th,48.2944,-122.66,10,N,Y,N,N,N,N,2/27/2009,NA,Island,NWCAA,Air Quality,Westside
+132,Omak-Colville Tribe,48.39999,-119.51896,263,Y,Y,N,N,N,N,10/20/2010,Suburban,Okanogan,Tribal Nation,Air Quality,Eastside
+166,Port Angeles- E 5th St,48.115,-123.43643,75,N,Y,N,N,N,N,4/2/2015,NA,Clallam,ORCAA,Air Quality,Westside
+36,Port Townsend-San Juan Ave,48.12919,-122.77897,20,N,Y,N,N,N,N,11/14/2006,Suburban,Jefferson,ORCAA,Air Quality,Westside
+37,Pullman-Dexter SE,46.7244,-117.18014,771,N,Y,N,N,N,N,11/14/2006,Suburban,Whitman,Ecology,Smoke Network,Eastside
+38,Puyallup-128th St,47.1401,-122.3004,135,N,Y,N,N,N,N,11/14/2006,Suburban,Pierce,PSCAA,Air Quality,Westside
+194,Quincy-3rd Ave NE,47.24126,-119.84595,397,N,Y,N,N,N,N,7/11/2017,NA,Grant,Ecology,Air Quality,Eastside
+40,Ritzville-Alder St,47.128,-118.3819,546,N,Y,N,N,N,N,11/14/2006,Rural,Adams,Ecology,Smoke Network,Eastside
+41,Rosalia-Josephine St,47.23136,-117.36856,685,N,Y,N,N,N,N,11/14/2006,Urban,Whitman,Ecology,Smoke Network,Eastside
+163,Seattle-10th & Weller,47.597222,-122.319722,42,Y,Y,N,N,N,Y,3/1/2014,Urban,King,Ecology,Air Quality,Westside
+42,Seattle-Beacon Hill,47.5682,-122.3086,102,N,Y,N,Y,Y,Y,11/14/2006,Urban,King,Ecology,Air Quality,Westside
+76,Seattle-Duwamish,47.559975,-122.338265,5,Y,Y,N,N,N,N,11/14/2006,Urban,King,PSCAA,Air Quality,Westside
+46,Seattle-South Park,47.53091,-122.3208,9,N,Y,N,N,N,N,11/14/2006,Urban,King,PSCAA,Air Quality,Westside
+137,Shelton-W Franklin,47.21355,-123.10081,23,N,Y,N,N,N,N,4/21/2011,Urban,Mason,ORCAA,Air Quality,Westside
+178,South Bend 1st,46.66186,-123.7916,17,N,Y,N,N,N,N,1/25/2016,NA,Pacific,ORCAA,Air Quality,Westside
+120,Spokane-Augusta Ave,47.67248,-117.36485,585,Y,Y,Y,N,N,N,3/20/2009,NA,Spokane,SRCAA,Air Quality,Eastside
+106,Spokane-E Broadway Ave,47.66396,-117.25765,611,Y,Y,N,N,N,N,4/15/2008,Suburban,Spokane,SRCAA,Air Quality,Eastside
+52,Spokane-Greenbluff,47.82713,-117.27422,785,N,N,N,Y,N,N,11/14/2006,Urban,Spokane,Ecology,Air Quality,Eastside
+74,Spokane-Monroe St,47.69983,-117.42631,634,N,Y,N,N,N,N,11/14/2006,Urban,Spokane,Ecology,Air Quality,Eastside
+168,Sunnyside-S 16th St,46.32033,-119.9981,217,N,Y,N,N,N,N,9/15/2015,NA,Yakima,YRCAA,Air Quality,Eastside
+54,Tacoma-Alexander Ave,47.2656,-122.385,1,N,Y,N,N,N,N,11/14/2006,Suburban,Pierce,PSCAA,Air Quality,Westside
+53,Tacoma-L Street,47.18631,-122.45154,103,Y,Y,N,N,N,N,11/14/2006,Suburban,Pierce,PSCAA,Air Quality,Westside
+178,Tacoma-S 36th St,46.66186,-123.7916,17,N,Y,N,N,N,N,1/25/2016,NA,Pacific,ORCAA,Air Quality,Westside
+55,Tacoma-Tower Dr,47.30446,-122.41202,169,N,N,N,N,N,N,11/14/2006,Suburban,Pierce,Ecology,Meteorological,Westside
+56,Taholah-Quinault Tribe,47.33976,-124.29178,14,N,Y,N,N,N,N,11/14/2006,Rural,Grays Harbor,Tribal Nation,Air Quality,Westside
+57,Toppenish-Yakama Tribe,46.38024,-120.33266,216,Y,Y,N,N,N,N,11/14/2006,Urban,Yakima,Tribal Nation,Air Quality,Eastside
+192,Tukwila Allentown,47.49854,-122.27839,5,Y,Y,N,N,N,N,6/16/2017,NA,King,PSCAA,Air Quality,Westside
+58,Twisp-Glover St,48.36451,-120.12113,492,N,Y,N,N,N,N,11/14/2006,Rural,Okanogan,USFS,Smoke Network,Eastside
+164,Vancouver NE 84th Ave,45.64336,-122.58737,54,Y,Y,N,N,N,N,8/21/2014,NA,Clark,SWCAA,Air Quality,Westside
+63,Vancouver-Blairmont Dr,45.6121,-122.5194,5,N,N,N,Y,N,N,4/10/2007,Suburban,Clark,Ecology,Air Quality,Westside
+64,Walla Walla-12th St,46.05881,-118.35147,267,N,Y,N,N,N,N,5/1/1989,Urban,Walla Walla,Ecology,Air Quality,Eastside
+65,Wellpinit-Spokane Tribe,47.88528,-117.98865,743,N,Y,N,N,N,N,11/14/2006,Urban,Stevens,Tribal Nation,Air Quality,Eastside
+152,Wenatchee-Fifth St,47.43061,-120.34195,260,N,Y,N,N,N,N,10/25/2012,City Center,Chelan,Ecology,Air Quality,Eastside
+123,White Swan-Yakama Tribe,46.37543,-120.72932,655,N,Y,Y,N,N,N,10/27/2009,Rural,Yakima,Tribal Nation,Air Quality,Eastside
+68,Winthrop-Chewuch Rd,48.47724,-120.19057,536,N,Y,N,N,N,N,11/14/2006,Rural,Okanogan,USFS,Smoke Network,Eastside
+71,Yacolt-Yacolt Rd,45.86639,-122.40889,213,N,Y,N,N,N,N,11/14/2006,Rural,Clark,SWCAA,Air Quality,Westside
+72,Yakima-4th Ave,46.59495,-120.51228,326,Y,Y,Y,N,N,N,11/14/2006,City Center,Yakima,YRCAA,Air Quality,Eastside
+73,Yelm-Northern Pacific,46.9515,-122.5976,397,N,N,N,Y,N,N,11/14/0206,Urban,Thurston,Ecology,Air Quality,Westside
