@@ -1,5 +1,5 @@
 ---
-title: "Washington PM and Heat Episides, 2010-2018"
+title: "Washington PM2.5 and Heat Episides, 2010-2018"
 output: github_document
 ---
 
@@ -97,6 +97,67 @@ heat_index <- function(TempF, RH, units = "F") {
   datarh = datarh[, HI := HI + ADJUSTMENT]
   datarh$HI
     
+}
+
+```
+
+```{r am-asd-gm-gsd-function, include=F}
+# Write and use GM, GSD, AM, ASD functions
+
+## No error handling
+
+gm<-function(x){
+    rslt<-exp(mean(log(x))) 
+    return(rslt)
+    }
+
+gsd<-function(x){
+    rslt<-exp(sqrt(var(log(x))))
+    return(rslt)
+    }
+
+## Error handling
+
+gm_eh<-function(x){
+    if(sum(is.na(x))>0)
+    {return(NA)}
+    if(sum(!is.finite(log(x)))==0)
+    {rslt<-exp(mean(log(x)))} # problem if x=0 -> log
+    else{rslt<-Inf}
+    return(rslt)
+    }
+
+gsd_eh<-function(x){
+    if(sum(is.na(x))>0)
+    {return(NA)}
+    if(sum(!is.finite(log(x)))==0)
+    {rslt<-exp(sqrt(var(log(x))))} # problem if x=0 -> log
+    else{rslt<-Inf}
+    return(rslt)
+    }
+
+n.am.asd.gm.gsd<-function(dta){
+    x<-subset(dta, !is.na(dta))
+    return(c( N=length(x),AM=mean(x),ASD=sd(x),GM=gm_eh(x),GSD=gsd_eh(x) ))
+    }
+
+```
+
+```{r get-equation-rsquared-function, include=F}
+
+lm_eqn = function(m) {
+
+  l <- list(a = format(coef(m)[1], digits = 2),
+      b = format(abs(coef(m)[2]), digits = 2),
+      r2 = format(summary(m)$r.squared, digits = 3));
+
+  if (coef(m)[2] >= 0)  {
+    eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,l)
+  } else {
+    eq <- substitute(italic(y) == a - b %.% italic(x)*","~~italic(r)^2~"="~r2,l)    
+  }
+
+  as.character(as.expression(eq));                 
 }
 
 ```
@@ -241,9 +302,9 @@ setDF(epa.awn.final.long); z<- unique(epa.awn.final.long[c("Latitude", "Longitud
 
 ```{r histograms.temp.rh.hi}
 
-ggplot(awn.1h, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI()
-ggplot(awn.1h, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI()
-ggplot(awn.1h, aes(x=hi))                    + geom_histogram() + theme_HEI()
+ggplot(awn.1h, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI(10) + xlab("Air Temperature (F)") + ylab("Count")
+ggplot(awn.1h, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI(10) + xlab("Relative Humidity (%)") + ylab("Count")
+ggplot(awn.1h, aes(x=hi))                    + geom_histogram() + theme_HEI(10) + xlab("Heat Index") + ylab("Count")
 
 #ggplot(data = awn.1h, mapping = aes(x = datetime, y = AIR_TEMP_F))            + geom_line() +  facet_wrap(facets =  vars(Site))
 #ggplot(data = awn.1h, mapping = aes(x = datetime, y = `RELATIVE_HUMIDITY_%`)) + geom_line() +  facet_wrap(facets =  vars(Site))
@@ -258,14 +319,14 @@ ggplot(awn.1h, aes(x=hi))                    + geom_histogram() + theme_HEI()
 
 ```{r time.series}
 
-ggplot(epa.awn.final.long, aes(x=datetime_PST, y=value, color=factor(variable))) + geom_line() + facet_wrap(facets = vars(Site)) + theme_HEI()
+ggplot(epa.awn.final.long, aes(x=datetime_PST, y=value, color=factor(variable))) + geom_line() + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Year") + ylab("")
 
 
 ```
 
 ```{r scatter.plots}
 
-ggplot(epa.awn.final.wide, aes(x=hi, y=Sample.Measurement)) + geom_point() + facet_wrap(facets = vars(Site)) + theme_HEI()
+ggplot(epa.awn.final.wide, aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
 
 
 ```

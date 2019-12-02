@@ -1,4 +1,4 @@
-Washington PM and Heat Episides, 2010-2018
+Washington PM2.5 and Heat Episides, 2010-2018
 ================
 
 ## METHODS
@@ -30,7 +30,7 @@ Washington PM and Heat Episides, 2010-2018
 ## RESULTS
 
 ``` r
-ggplot(awn.1h, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI()
+ggplot(awn.1h, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI(10) + xlab("Air Temperature (F)") + ylab("Count")
 ```
 
     ## Warning: `legend.margin` must be specified using `margin()`. For the old
@@ -41,7 +41,7 @@ ggplot(awn.1h, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI()
 ![](WA-PM-Heat-Episodes_files/figure-gfm/histograms.temp.rh.hi-1.png)<!-- -->
 
 ``` r
-ggplot(awn.1h, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI()
+ggplot(awn.1h, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI(10) + xlab("Relative Humidity (%)") + ylab("Count")
 ```
 
     ## Warning: `legend.margin` must be specified using `margin()`. For the old
@@ -52,7 +52,7 @@ ggplot(awn.1h, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI()
 ![](WA-PM-Heat-Episodes_files/figure-gfm/histograms.temp.rh.hi-2.png)<!-- -->
 
 ``` r
-ggplot(awn.1h, aes(x=hi))                    + geom_histogram() + theme_HEI()
+ggplot(awn.1h, aes(x=hi))                    + geom_histogram() + theme_HEI(10) + xlab("Heat Index") + ylab("Count")
 ```
 
     ## Warning: `legend.margin` must be specified using `margin()`. For the old
@@ -74,7 +74,7 @@ ggplot(awn.1h, aes(x=hi))                    + geom_histogram() + theme_HEI()
 ```
 
 ``` r
-ggplot(epa.awn.final.long, aes(x=datetime_PST, y=value, color=factor(variable))) + geom_line() + facet_wrap(facets = vars(Site)) + theme_HEI()
+ggplot(epa.awn.final.long, aes(x=datetime_PST, y=value, color=factor(variable))) + geom_line() + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Year") + ylab("")
 ```
 
     ## Warning: `legend.margin` must be specified using `margin()`. For the old
@@ -83,7 +83,7 @@ ggplot(epa.awn.final.long, aes(x=datetime_PST, y=value, color=factor(variable)))
 ![](WA-PM-Heat-Episodes_files/figure-gfm/time.series-1.png)<!-- -->
 
 ``` r
-ggplot(epa.awn.final.wide, aes(x=hi, y=Sample.Measurement)) + geom_point() + facet_wrap(facets = vars(Site)) + theme_HEI()
+ggplot(epa.awn.final.wide, aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
 ```
 
     ## Warning: `legend.margin` must be specified using `margin()`. For the old
