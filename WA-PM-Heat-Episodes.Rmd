@@ -4,7 +4,7 @@ output: github_document
 ---
 
 ```{r setup, include=F}
-knitr::opts_chunk$set(echo = TRUE, fig.width=12, fig.height=8)
+knitr::opts_chunk$set(echo = TRUE, fig.width=12, fig.height=8, warning=FALSE, message=FALSE)
 
 ```
 
@@ -138,7 +138,7 @@ gsd_eh<-function(x){
 
 n.am.asd.gm.gsd<-function(dta){
     x<-subset(dta, !is.na(dta))
-    return(c( N=length(x),AM=mean(x),ASD=sd(x),GM=gm_eh(x),GSD=gsd_eh(x) ))
+    return(c( N=length(x),AM=mean(x),ASD=sd(x),GM=gm_eh(x),GSD=gsd_eh(x), Min=min(x), Max=max(x) ))
     }
 
 ```
@@ -184,12 +184,12 @@ awn.1h[, hi := heat_index(AIR_TEMP_F, `RELATIVE_HUMIDITY_%`)]
 
 awn.1h <- awn.1h %>% rename(Site.Num.awn=Group.1, Latitude.awn=Group.2, Longitude.awn=Group.3)
 
-save(awn.1h, file =         "Data/awn.1h.2010.2018.RData")
-save(awn.1h.summary, file = "Data/awn.1h.summary.2010.2018.RData")
-
 rm(awn, awn.1h.rh, awn.1h.temp, awn.temp.rh, awn.temp.rh.na)
 
 setDF(awn.1h); unique(awn.1h[c("Latitude.awn", "Longitude.awn")])
+
+save(awn.1h, file =         "Data/awn.1h.2010.2018.RData")
+save(awn.1h.summary, file = "Data/awn.1h.summary.2010.2018.RData")
 
 ```
 
@@ -224,14 +224,14 @@ epa.1h.summary  <- ddply(epa.1h, .(Site,year), summarize,  PM=mean(Sample.Measur
 
 setDT(epa.1h)
 
-save(epa.1h, file =         "Data/epa.1h.2010.2018.RData")
-save(epa.1h.summary, file = "Data/epa.1h.summary.2010.2018.RData")
-
 rm(epa, epa.2010, epa.2011, epa.2012, epa.2013, epa.2014, epa.2015, epa.2016, epa.2017, epa.2018)
 rm(epa.2010.wa, epa.2011.wa, epa.2012.wa, epa.2013.wa, epa.2014.wa, epa.2015.wa, epa.2016.wa, epa.2017.wa, epa.2018.wa)
 #rm(epa.nearestAWN.merge, locationsAWN, locationsPM, nearestAWN, set1sp, set2sp)
 
 setDF(epa.1h); unique(epa.1h[c("Latitude", "Longitude")]); unique(epa.1h$Site)
+
+save(epa.1h, file =         "Data/epa.1h.2010.2018.RData")
+save(epa.1h.summary, file = "Data/epa.1h.summary.2010.2018.RData")
 
 ```
 
@@ -265,55 +265,77 @@ setDT(awn.1h); setkey (awn.1h[!is.na(Longitude.awn)], Longitude.awn, Latitude.aw
 
 epa.awn.final.wide = merge(epa.nearestAWN.merge, awn.1h, by.x= c("Longitude.awn", "Latitude.awn", "datetime_PST"), by.y = c("Longitude.awn", "Latitude.awn", "datetime_PST"))
 
-#epa.awn.final.wide$County <- paste(c(epa.awn.final.wide$County.Name, epa.awn.final.wide$Site.Num), collapse = "-")
-
 epa.awn.final.long <- melt(data = epa.awn.final.wide, id.vars = c("Latitude","Longitude","datetime_PST","Site"), measure.vars = c("Sample.Measurement", "hi"))
 
 setDF(epa.awn.final.long); z<- unique(epa.awn.final.long[c("Latitude", "Longitude")])
+
+save(epa.awn.final.wide, file =         "Data/epa.awn.final.wide.2010.2018.RData")
+save(epa.awn.final.long, file =         "Data/epa.awn.final.long.2010.2018.RData")
 
 ```
 
 ## METHODS
 
-### Heat Episodes
+### Heat
 
 - Requested AWN data (with data QA date pre-2010) from locations nearest EPA PM sites for 2010-2018
-- 38 sites
-- Computed heat index
+- Computed heat index using Rothfusz approach
 
-### PM Episodes
+### PM2.5
 
 - Downloaded [EPA PM data for 2010-2018](#https://aqs.epa.gov/aqsweb/airdata/download_files.html)
-- 24/27 sites
-- Merged with heat episode data
+- Merged with heat data
 - Computed nearest Haversine distance between AWN and EPA sites
 
 ### Plots
 
-- Histograms for temp, relative humidity, and PM2.5 (PM2.5 FRM/FEM Mass (88101))
+- Histograms for temp, relative humidity, heat index, and PM2.5 (PM2.5 FRM/FEM Mass (88101))
+- Density plots
 - Time series
-- Scatter plot of heat index vs. PM, 2018-2018 by location (n=24)
+- Scatter plot of heat index vs. PM, 2010-2018 by location (n=24)
 
 ### Maps
 
-
+- Ag worker population by county
+- PM * HI by county
 
 ## RESULTS
 
+```{r summary.tables}
+
+n.am.asd.gm.gsd(epa.awn.final.wide$Sample.Measurement)
+n.am.asd.gm.gsd(epa.awn.final.wide$hi)
+
+```
+
 ```{r histograms.temp.rh.hi}
 
-ggplot(awn.1h, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI(10) + xlab("Air Temperature (F)") + ylab("Count")
-ggplot(awn.1h, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI(10) + xlab("Relative Humidity (%)") + ylab("Count")
-ggplot(awn.1h, aes(x=hi))                    + geom_histogram() + theme_HEI(10) + xlab("Heat Index") + ylab("Count")
+ggplot(epa.awn.final.wide, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI(10) + xlab("Air Temperature (F)") + ylab("Count")
+ggplot(epa.awn.final.wide, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI(10) + xlab("Relative Humidity (%)") + ylab("Count")
+ggplot(epa.awn.final.wide, aes(x=hi))                    + geom_histogram() + theme_HEI(10) + xlab("Heat Index") + ylab("Count")
+ggplot(epa.awn.final.wide, aes(x=Sample.Measurement))    + geom_histogram() + theme_HEI(10) + xlab("PM2.5 µg/m3") + ylab("Count")
 
-#ggplot(data = awn.1h, mapping = aes(x = datetime, y = AIR_TEMP_F))            + geom_line() +  facet_wrap(facets =  vars(Site))
-#ggplot(data = awn.1h, mapping = aes(x = datetime, y = `RELATIVE_HUMIDITY_%`)) + geom_line() +  facet_wrap(facets =  vars(Site))
-#ggplot(data = awn.1h, mapping = aes(x = datetime, y = hi))                    + geom_line() +  facet_wrap(facets =  vars(Site))
+```
 
-#temp1 <- ggplot(jun10.temp, aes(x = time, y = value, color=factor(variable, labels = c("15-min Avg @ 2m", "1-min Avg @ 3m", "1-min Avg @ 10m", "10-sec Avg @ 10m")))) + geom_line(size=1, alpha=0.5) + ggtitle('') + xlab("") + ylab("Temperature (°C)") + scale_y_continuous(limits = c(12.5, 21)) + scale_x_datetime(date_breaks = "10 min", labels=date_format("%H:%M", tz = "")) + theme(legend.position="bottom", plot.title = element_text(hjust = 0.5), legend.title = element_blank()) + ggtitle("June 10, 2016") + theme_HEI(base_size=10)
+```{r density-plots}
 
+ggplot(epa.awn.final.wide[!is.na(hi)], aes( `hi`, y=..density..)) + 
+  geom_density() + 
+  geom_vline(xintercept = 80, col = "red") +
+  facet_wrap(~Site, scales = "free") +
+  geom_histogram(aes(y=..density..), alpha=0.5, position="identity") +
+  xlim(0, 100) + 
+  theme_HEI(12) + 
+  xlab("Heat Index")
 
-#load("Data/hourly_88101_2010-2018_WA.Rdata")
+ggplot(epa.awn.final.wide[!is.na(`Sample.Measurement`)], aes( `Sample.Measurement`, y=..density..)) + 
+  geom_density() + 
+  geom_vline(xintercept = 35, col = "red") +
+  facet_wrap(~Site, scales = "free") +
+  geom_histogram(aes(y=..density..), alpha=0.5, position="identity")+
+  xlim(0, 100) + 
+  theme_HEI(12) + 
+  xlab("PM2.5 µg/m3")
 
 ```
 
@@ -325,8 +347,17 @@ ggplot(epa.awn.final.long, aes(x=datetime_PST, y=value, color=factor(variable)))
 ```
 
 ```{r scatter.plots}
+#All data
 
 ggplot(epa.awn.final.wide, aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
+
+#PM data above 35 ug/m3
+
+ggplot(epa.awn.final.wide[epa.awn.final.wide$Sample.Measurement>35], aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
+
+#Heat index data above 80
+
+ggplot(epa.awn.final.wide[epa.awn.final.wide$hi>80], aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
 
 
 ```
