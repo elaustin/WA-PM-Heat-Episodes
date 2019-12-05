@@ -11,20 +11,23 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=12, fig.height=8, warning=FALSE, me
 ```{r libraries, include=F}
 
 library(pacman)
-library(plyr)
-library(readr)
-library(data.table)
-library(lubridate)
-library(ggplot2)  
-library(scales)   
-library(gridExtra) 
-library(grid) 
-library(dplyr)
-library(xts)
-library(sqldf)
-library(rgeos)
-library(geosphere)
-library(tidyr)
+p_load(plyr)
+p_load(readr)
+p_load(data.table)
+p_load(lubridate)
+p_load(ggplot2)  
+p_load(scales)   
+p_load(gridExtra) 
+p_load(grid) 
+p_load(dplyr)
+p_load(xts)
+p_load(sqldf)
+p_load(rgeos)
+p_load(geosphere)
+p_load(tidyr)
+p_load(tidyqwi)
+p_load(httr)
+p_load(sp)
 
 ```
 
@@ -162,34 +165,62 @@ lm_eqn = function(m) {
 
 ```
 
+```{r get_qwi_data, include = F, cache = T}
+
+#query qwi employment data
+# apikey = as.character(fread("API key/QWI key", header = F))
+# qwi = get_qwi(years = as.character(2010:2019), 
+#               quarters = c(1, 2, 3, 4), 
+#               industry_level = "4", 
+#               states = "53",
+#               variables = c("sEmp", "Emp"),
+#               endpoint = "rh", 
+#               geography = "county", 
+#               seasonadj = "U", 
+#               apikey = apikey,
+#               processing = "sequential")
+#saveRDS(qwi, "Data/qwi_2010_2019_RH.RDS")
+#
+# qwi = readRDS("Data/qwi_2010_2019_RH.RDS")
+# qwi_ag = setDT(qwi)
+# 
+# qwi_ag = qwi_ag[, NAICS2 := substr(qwi$industry,1,2) ]
+# qwi_ag  = qwi_ag[NAICS2 %in% "11"]
+# qwi_ag = add_qwi_labels(qwi_ag)
+# 
+# save(qwi_ag, file = "Data/qwi_ag_2010_2019_RH.RData")
+
+```
+
+
 ```{r upload-clean-awn-data, include=F, cache=T}
 
-awn <- list.files("Data/awn", pattern=".csv", full.names = TRUE) %>%  lapply(read_csv) %>% bind_rows 
-
-awn.temp.rh.na  <- subset(awn, select = c(TSTAMP_PST, UNIT_ID, STATION_NAME, LATITUDE, LONGITUDE, AIR_TEMP_F, `RELATIVE_HUMIDITY_%`))
-awn.temp.rh     <- subset(awn.temp.rh.na, AIR_TEMP_F < 500 & `RELATIVE_HUMIDITY_%` < 500)
-
-awn.1h.temp     <- aggregate(awn.temp.rh["AIR_TEMP_F"], list(awn.temp.rh$UNIT_ID, awn.temp.rh$LATITUDE, awn.temp.rh$LONGITUDE, hour=cut(as.POSIXct(awn.temp.rh$TSTAMP_PST)-1, "hour")), mean)
-awn.1h.rh       <- aggregate(awn.temp.rh["RELATIVE_HUMIDITY_%"], list(awn.temp.rh$UNIT_ID, hour=cut(as.POSIXct(awn.temp.rh$TSTAMP_PST)-1, "hour")), mean)
-
-awn.1h          <- merge(awn.1h.temp, awn.1h.rh, by = c("Group.1","hour"))
-awn.1h$datetime_PST <- ymd_hms(awn.1h$hour, tz="America/Los_Angeles")
-awn.1h$year     <- year(awn.1h$datetime_PST)
-
-awn.1h.summary  <- ddply(awn.1h, .(Group.1,year), summarize,  TEMP_F=mean(AIR_TEMP_F), RH=mean(`RELATIVE_HUMIDITY_%`), N=length(year))
-
-setDT(awn.1h)
-
-awn.1h[, hi := heat_index(AIR_TEMP_F, `RELATIVE_HUMIDITY_%`)]
-
-awn.1h <- awn.1h %>% rename(Site.Num.awn=Group.1, Latitude.awn=Group.2, Longitude.awn=Group.3)
-
-rm(awn, awn.1h.rh, awn.1h.temp, awn.temp.rh, awn.temp.rh.na)
-
-setDF(awn.1h); unique(awn.1h[c("Latitude.awn", "Longitude.awn")])
-
-save(awn.1h, file =         "Data/awn.1h.2010.2018.RData")
-save(awn.1h.summary, file = "Data/awn.1h.summary.2010.2018.RData")
+# awn <- list.files("Data/awn", pattern=".csv", full.names = TRUE) %>%  lapply(read_csv) %>% bind_rows 
+# 
+# awn.temp.rh.na  <- subset(awn, select = c(TSTAMP_PST, UNIT_ID, STATION_NAME, LATITUDE, LONGITUDE, AIR_TEMP_F, `RELATIVE_HUMIDITY_%`))
+# awn.temp.rh     <- subset(awn.temp.rh.na, AIR_TEMP_F < 500 & `RELATIVE_HUMIDITY_%` < 500)
+# 
+# awn.1h.temp     <- aggregate(awn.temp.rh["AIR_TEMP_F"], list(awn.temp.rh$UNIT_ID, awn.temp.rh$LATITUDE, awn.temp.rh$LONGITUDE, hour=cut(as.POSIXct(awn.temp.rh$TSTAMP_PST)-1, "hour")), mean)
+# awn.1h.rh       <- aggregate(awn.temp.rh["RELATIVE_HUMIDITY_%"], list(awn.temp.rh$UNIT_ID, hour=cut(as.POSIXct(awn.temp.rh$TSTAMP_PST)-1, "hour")), mean)
+# 
+# awn.1h          <- merge(awn.1h.temp, awn.1h.rh, by = c("Group.1","hour"))
+# awn.1h$datetime_PST <- ymd_hms(awn.1h$hour, tz="America/Los_Angeles")
+# awn.1h$year     <- year(awn.1h$datetime_PST)
+# 
+# awn.1h.summary  <- ddply(awn.1h, .(Group.1,year), summarize,  TEMP_F=mean(AIR_TEMP_F), RH=mean(`RELATIVE_HUMIDITY_%`), N=length(year))
+# 
+# setDT(awn.1h)
+# 
+# awn.1h[, hi := heat_index(AIR_TEMP_F, `RELATIVE_HUMIDITY_%`)]
+# 
+# awn.1h <- awn.1h %>% rename(Site.Num.awn=Group.1, Latitude.awn=Group.2, Longitude.awn=Group.3)
+# 
+# rm(awn, awn.1h.rh, awn.1h.temp, awn.temp.rh, awn.temp.rh.na)
+# 
+# setDF(awn.1h); unique(awn.1h[c("Latitude.awn", "Longitude.awn")])
+# 
+# save(awn.1h, file =         "Data/awn.1h.2010.2018.RData")
+# save(awn.1h.summary, file = "Data/awn.1h.summary.2010.2018.RData")
 
 ```
 
@@ -197,80 +228,85 @@ save(awn.1h.summary, file = "Data/awn.1h.summary.2010.2018.RData")
 
 #https://aqs.epa.gov/aqsweb/airdata/download_files.html
 
-epa.2010 <- read.csv("Data/epa/hourly_88101_2010.csv"); epa.2010.wa <- subset(epa.2010, State.Code=='53')
-epa.2011 <- read.csv("Data/epa/hourly_88101_2011.csv"); epa.2011.wa <- subset(epa.2011, State.Code=='53')
-epa.2012 <- read.csv("Data/epa/hourly_88101_2012.csv"); epa.2012.wa <- subset(epa.2012, State.Code=='53')
-epa.2013 <- read.csv("Data/epa/hourly_88101_2013.csv"); epa.2013.wa <- subset(epa.2013, State.Code=='53')
-epa.2014 <- read.csv("Data/epa/hourly_88101_2014.csv"); epa.2014.wa <- subset(epa.2014, State.Code=='53')
-epa.2015 <- read.csv("Data/epa/hourly_88101_2015.csv"); epa.2015.wa <- subset(epa.2015, State.Code=='53')
-epa.2016 <- read.csv("Data/epa/hourly_88101_2016.csv"); epa.2016.wa <- subset(epa.2016, State.Code=='53')
-epa.2017 <- read.csv("Data/epa/hourly_88101_2017.csv"); epa.2017.wa <- subset(epa.2017, State.Code=='53')
-epa.2018 <- read.csv("Data/epa/hourly_88101_2018.csv"); epa.2018.wa <- subset(epa.2018, State.Code=='53')
-
-epa <- bind_rows(epa.2010.wa, epa.2011.wa, epa.2012.wa, epa.2013.wa, epa.2014.wa, epa.2015.wa, epa.2016.wa, epa.2017.wa, epa.2018.wa)
-
-epa$datetime_UTC = ymd_hm(paste(epa$Date.GMT, epa$Time.GMT))
-epa$datetime_PST = as_datetime(epa$datetime, tz = "America/Los_Angeles")
-
-epa$year     <- year(epa$datetime_PST)
-
-epa.1h <- subset(epa, select = c(State.Code, County.Code, County.Name, Site.Num, Latitude, Longitude, Datum, Parameter.Name, datetime_PST, year, Date.Local, Time.Local, Date.GMT, Time.GMT, Sample.Measurement, Units.of.Measure, State.Name, County.Name))
-
-table(epa.1h$County.Name,epa.1h$Site.Num)
-
-epa.1h <- epa.1h %>% unite("Site", County.Name:Site.Num, sep = "-", remove = FALSE)
-
-epa.1h.summary  <- ddply(epa.1h, .(Site,year), summarize,  PM=mean(Sample.Measurement), N=length(year))
-
-setDT(epa.1h)
-
-rm(epa, epa.2010, epa.2011, epa.2012, epa.2013, epa.2014, epa.2015, epa.2016, epa.2017, epa.2018)
-rm(epa.2010.wa, epa.2011.wa, epa.2012.wa, epa.2013.wa, epa.2014.wa, epa.2015.wa, epa.2016.wa, epa.2017.wa, epa.2018.wa)
-#rm(epa.nearestAWN.merge, locationsAWN, locationsPM, nearestAWN, set1sp, set2sp)
-
-setDF(epa.1h); unique(epa.1h[c("Latitude", "Longitude")]); unique(epa.1h$Site)
-
-save(epa.1h, file =         "Data/epa.1h.2010.2018.RData")
-save(epa.1h.summary, file = "Data/epa.1h.summary.2010.2018.RData")
+# epa.2010 <- read.csv("Data/epa/hourly_88101_2010.csv"); epa.2010.wa <- subset(epa.2010, State.Code=='53')
+# epa.2011 <- read.csv("Data/epa/hourly_88101_2011.csv"); epa.2011.wa <- subset(epa.2011, State.Code=='53')
+# epa.2012 <- read.csv("Data/epa/hourly_88101_2012.csv"); epa.2012.wa <- subset(epa.2012, State.Code=='53')
+# epa.2013 <- read.csv("Data/epa/hourly_88101_2013.csv"); epa.2013.wa <- subset(epa.2013, State.Code=='53')
+# epa.2014 <- read.csv("Data/epa/hourly_88101_2014.csv"); epa.2014.wa <- subset(epa.2014, State.Code=='53')
+# epa.2015 <- read.csv("Data/epa/hourly_88101_2015.csv"); epa.2015.wa <- subset(epa.2015, State.Code=='53')
+# epa.2016 <- read.csv("Data/epa/hourly_88101_2016.csv"); epa.2016.wa <- subset(epa.2016, State.Code=='53')
+# epa.2017 <- read.csv("Data/epa/hourly_88101_2017.csv"); epa.2017.wa <- subset(epa.2017, State.Code=='53')
+# epa.2018 <- read.csv("Data/epa/hourly_88101_2018.csv"); epa.2018.wa <- subset(epa.2018, State.Code=='53')
+# 
+# epa <- bind_rows(epa.2010.wa, epa.2011.wa, epa.2012.wa, epa.2013.wa, epa.2014.wa, epa.2015.wa, epa.2016.wa, epa.2017.wa, epa.2018.wa)
+# 
+# epa$datetime_UTC = ymd_hm(paste(epa$Date.GMT, epa$Time.GMT))
+# epa$datetime_PST = as_datetime(epa$datetime, tz = "America/Los_Angeles")
+# 
+# epa$year     <- year(epa$datetime_PST)
+# 
+# epa.1h <- subset(epa, select = c(State.Code, County.Code, County.Name, Site.Num, Latitude, Longitude, Datum, Parameter.Name, datetime_PST, year, Date.Local, Time.Local, Date.GMT, Time.GMT, Sample.Measurement, Units.of.Measure, State.Name, County.Name))
+# 
+# table(epa.1h$County.Name,epa.1h$Site.Num)
+# 
+# epa.1h <- epa.1h %>% unite("Site", County.Name:Site.Num, sep = "-", remove = FALSE)
+# 
+# epa.1h.summary  <- ddply(epa.1h, .(Site,year), summarize,  PM=mean(Sample.Measurement), N=length(year))
+# 
+# setDT(epa.1h)
+# 
+# rm(epa, epa.2010, epa.2011, epa.2012, epa.2013, epa.2014, epa.2015, epa.2016, epa.2017, epa.2018)
+# rm(epa.2010.wa, epa.2011.wa, epa.2012.wa, epa.2013.wa, epa.2014.wa, epa.2015.wa, epa.2016.wa, epa.2017.wa, epa.2018.wa)
+# #rm(epa.nearestAWN.merge, locationsAWN, locationsPM, nearestAWN, set1sp, set2sp)
+# 
+# setDF(epa.1h); unique(epa.1h[c("Latitude", "Longitude")]); unique(epa.1h$Site)
+# 
+# save(epa.1h, file =         "Data/epa.1h.2010.2018.RData")
+# save(epa.1h.summary, file = "Data/epa.1h.summary.2010.2018.RData")
 
 ```
 
 ```{r merge-awn-epa-data, include=F, cache=T}
 
-#find nearest weather station
-locationsPM  = unique(epa.1h[, c("Longitude","Latitude")])
-locationsAWN = unique(awn.1h[, c("Longitude.awn","Latitude.awn")])
-
-set1sp <- SpatialPoints(locationsPM)
-set2sp <- SpatialPoints(locationsAWN)
-
-locationsPM$nearest_in_set2 <- apply(gDistance(set2sp, set1sp, byid=T), 1, which.min)
-
-nearestAWN = locationsAWN[locationsPM$nearest_in_set2,]
-nearestAWN$Longitude.pm = locationsPM$Longitude
-nearestAWN$Latitude.pm = locationsPM$Latitude
-
-#calculate haversine distance. Returns meters. Assumes radius of the earth is 6378137 m 
-nearestAWN$dist_m = distHaversine((nearestAWN[,c("Longitude.awn", "Latitude.awn")]), (nearestAWN[,c("Longitude.pm", "Latitude.pm")]))
-nearestAWN$dist_mi = nearestAWN$dist_m/1609.34
-
-#Merge AWN and EPA data
-
-setDT(nearestAWN)
-
-epa.nearestAWN.merge = merge(epa.1h, nearestAWN, by.x=c("Longitude","Latitude"), by.y=c("Longitude.pm","Latitude.pm"))
-
-setDT(epa.nearestAWN.merge); setkey (epa.nearestAWN.merge, Longitude, Latitude, datetime_PST)
-setDT(awn.1h); setkey (awn.1h[!is.na(Longitude.awn)], Longitude.awn, Latitude.awn, datetime_PST)
-
-epa.awn.final.wide = merge(epa.nearestAWN.merge, awn.1h, by.x= c("Longitude.awn", "Latitude.awn", "datetime_PST"), by.y = c("Longitude.awn", "Latitude.awn", "datetime_PST"))
-
-epa.awn.final.long <- melt(data = epa.awn.final.wide, id.vars = c("Latitude","Longitude","datetime_PST","Site"), measure.vars = c("Sample.Measurement", "hi"))
-
-setDF(epa.awn.final.long); z<- unique(epa.awn.final.long[c("Latitude", "Longitude")])
-
-save(epa.awn.final.wide, file =         "Data/epa.awn.final.wide.2010.2018.RData")
-save(epa.awn.final.long, file =         "Data/epa.awn.final.long.2010.2018.RData")
+# load("Data/epa.1h.summary.2010.2018.RData")
+# load("Data/awn.1h.summary.2010.2018.RData")
+# load("Data/epa.1h.2010.2018.RData")
+# load("Data/awn.1h.2010.2018.RData")
+# 
+# #find nearest weather station
+# locationsPM  = unique(epa.1h[, c("Longitude","Latitude")])
+# locationsAWN = unique(awn.1h[, c("Longitude.awn","Latitude.awn")])
+# 
+# set1sp <- SpatialPoints(locationsPM)
+# set2sp <- SpatialPoints(locationsAWN)
+# 
+# locationsPM$nearest_in_set2 <- apply(gDistance(set2sp, set1sp, byid=T), 1, which.min)
+# 
+# nearestAWN = locationsAWN[locationsPM$nearest_in_set2,]
+# nearestAWN$Longitude.pm = locationsPM$Longitude
+# nearestAWN$Latitude.pm = locationsPM$Latitude
+# 
+# #calculate haversine distance. Returns meters. Assumes radius of the earth is 6378137 m 
+# nearestAWN$dist_m = distHaversine((nearestAWN[,c("Longitude.awn", "Latitude.awn")]), (nearestAWN[,c("Longitude.pm", "Latitude.pm")]))
+# nearestAWN$dist_mi = nearestAWN$dist_m/1609.34
+# 
+# #Merge AWN and EPA data
+# 
+# setDT(nearestAWN)
+# 
+# epa.nearestAWN.merge = merge(epa.1h, nearestAWN, by.x=c("Longitude","Latitude"), by.y=c("Longitude.pm","Latitude.pm"))
+# 
+# setDT(epa.nearestAWN.merge); setkey (epa.nearestAWN.merge, Longitude, Latitude, datetime_PST)
+# setDT(awn.1h); setkey (awn.1h[!is.na(Longitude.awn)], Longitude.awn, Latitude.awn, datetime_PST)
+# 
+# epa.awn.final.wide = merge(epa.nearestAWN.merge, awn.1h, by.x= c("Longitude.awn", "Latitude.awn", "datetime_PST"), by.y = c("Longitude.awn", "Latitude.awn", "datetime_PST"))
+# 
+# epa.awn.final.long <- melt(data = epa.awn.final.wide, id.vars = c("Latitude","Longitude","datetime_PST","Site"), measure.vars = c("Sample.Measurement", "hi"))
+# 
+# setDF(epa.awn.final.long); z<- unique(epa.awn.final.long[c("Latitude", "Longitude")])
+# 
+# save(epa.awn.final.wide, file =         "Data/epa.awn.final.wide.2010.2018.RData")
+# save(epa.awn.final.long, file =         "Data/epa.awn.final.long.2010.2018.RData")
 
 ```
 
@@ -303,6 +339,8 @@ save(epa.awn.final.long, file =         "Data/epa.awn.final.long.2010.2018.RData
 
 ```{r summary.tables}
 
+load("Data/epa.awn.final.wide.2010.2018.RData")
+load("Data/epa.awn.final.long.2010.2018.RData")
 n.am.asd.gm.gsd(epa.awn.final.wide$Sample.Measurement)
 n.am.asd.gm.gsd(epa.awn.final.wide$hi)
 
@@ -356,8 +394,29 @@ ggplot(epa.awn.final.wide, aes(x=hi, y=Sample.Measurement)) + geom_point(size=1)
 ggplot(epa.awn.final.wide[epa.awn.final.wide$Sample.Measurement>35], aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
 
 #Heat index data above 80
+#
+
 
 ggplot(epa.awn.final.wide[epa.awn.final.wide$hi>80], aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
+
+#density plot
+p_load(viridis)
+df <- fortify(epa.awn.final.wide[`Sample.Measurement`>=35 &
+                          `hi`>=80])
+
+ggplot(df[Site != "Clark-23"]) +
+  geom_hex(bins = 12, aes(x    = `Sample.Measurement`,
+               y    = hi,
+               fill = ..count..),
+           color = "black") +
+  scale_fill_viridis_c(option = "inferno") +
+  labs(fill = 'Count') +
+  facet_wrap(~Site) +
+  theme_HEI(12) +
+  xlim(0,200) +
+  geom_hline(yintercept = 80, col = "red")+
+  geom_vline(xintercept = 35, col = "red")
+
 
 
 ```
