@@ -11,304 +11,22 @@ knitr::opts_chunk$set(echo = TRUE, fig.width=12, fig.height=8, warning=FALSE, me
 ```{r libraries, include=F}
 
 library(pacman)
-p_load(plyr)
-p_load(readr)
-p_load(data.table)
-p_load(lubridate)
-p_load(ggplot2)  
-p_load(scales)   
-p_load(gridExtra) 
-p_load(grid) 
-p_load(dplyr)
-p_load(xts)
-p_load(sqldf)
-p_load(rgeos)
-p_load(geosphere)
-p_load(tidyr)
-p_load(tidyqwi)
-p_load(httr)
-p_load(sp)
+
 
 ```
 
-```{r load.theme, include=F}
+```{r load.data.themes, include=F}
 
-#### Koundy's theme ####
-# Source: https://github.com/koundy/ggplot_theme_Publication/blob/master/R/ggplot_theme_Publication.R
-theme_HEI <- function(base_size=18) {
-  library(grid)
-  library(ggthemes)
-  (theme_foundation(base_size=base_size)
-  + theme(plot.title = element_text(face = "bold",
-                                    size = rel(1.2), hjust = 0.5),
-          text = element_text(),
-          panel.background = element_rect(colour = NA),
-          plot.background = element_rect(colour = NA),
-          panel.border = element_rect(colour = NA),
-          axis.title = element_text(face = "bold",size = rel(1)),
-          axis.title.y = element_text(angle=90,vjust =2),
-          axis.title.x = element_text(vjust = -0.2),
-          axis.text = element_text(), 
-          axis.line = element_line(colour="black"),
-          axis.ticks = element_line(),
-          panel.grid.major = element_line(colour="#f0f0f0"),
-          panel.grid.minor = element_blank(),
-          legend.key = element_rect(colour = NA),
-          legend.position = "bottom",
-          legend.direction = "horizontal",
-          legend.key.size= unit(0.5, "cm"),
-          legend.margin = unit(0, "cm"),
-          legend.title = element_blank(),
-          plot.margin=unit(c(4,4,4,4),"mm"),
-          strip.background=element_rect(colour="#f0f0f0",fill="#f0f0f0"),
-          strip.text = element_text(face="bold")
-  ))
-  
-}
+source("Data and Figure Format.R")
 
 ```
 
 ```{r heat-index-function, include=F}
 
-#create heat index function
-heat_index <- function(TempF, RH, units = "F") {
-  #Based on the heat index equation: 
-  #https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
-  #Rothfusz approach
-  
-  datarh  = data.table(TempF, RH)
-  
-  if (units == "C"){
-    datarh[, TempF := (TempF * 9/5) + 32]
-  }
-  
-  datarh[, HI := 0.5 * (TempF + 61.0 + ((TempF-68.0)*1.2) + (RH*0.094))]
-  
-  datarh[, HIave := rowMeans(.SD), .SDcols = c("HI", "TempF")]
-  
-  datarh[HIave > 80, HI := -42.379 + 2.04901523*TempF + 10.14333127*RH - .22475541*TempF*RH - 
-           .00683783*TempF*TempF - 
-           .05481717*RH*RH + .00122874*TempF*TempF*RH + 
-           .00085282*TempF*RH*RH - .00000199*TempF*TempF*RH*RH ]
-  
-  datarh$ADJUSTMENT = 0
-  datarh[RH < 13 & (TempF>=80 & TempF <= 112), 
-    ADJUSTMENT := -((13-RH)/4)*sqrt((17-abs(TempF-95.))/17)]
-  datarh[RH > 85 & (TempF>=80 & TempF <= 87), 
-    ADJUSTMENT := ((RH-85)/10) * ((87-TempF)/5)]
-  
-  datarh = datarh[, HI := HI + ADJUSTMENT]
-  datarh$HI
-    
-}
+source("Heat Index Function.R")
 
 ```
 
-```{r am-asd-gm-gsd-function, include=F}
-# Write and use GM, GSD, AM, ASD functions
-
-## No error handling
-
-gm<-function(x){
-    rslt<-exp(mean(log(x))) 
-    return(rslt)
-    }
-
-gsd<-function(x){
-    rslt<-exp(sqrt(var(log(x))))
-    return(rslt)
-    }
-
-## Error handling
-
-gm_eh<-function(x){
-    if(sum(is.na(x))>0)
-    {return(NA)}
-    if(sum(!is.finite(log(x)))==0)
-    {rslt<-exp(mean(log(x)))} # problem if x=0 -> log
-    else{rslt<-Inf}
-    return(rslt)
-    }
-
-gsd_eh<-function(x){
-    if(sum(is.na(x))>0)
-    {return(NA)}
-    if(sum(!is.finite(log(x)))==0)
-    {rslt<-exp(sqrt(var(log(x))))} # problem if x=0 -> log
-    else{rslt<-Inf}
-    return(rslt)
-    }
-
-n.am.asd.gm.gsd<-function(dta){
-    x<-subset(dta, !is.na(dta))
-    return(c( N=length(x),AM=mean(x),ASD=sd(x),GM=gm_eh(x),GSD=gsd_eh(x), Min=min(x), Max=max(x) ))
-    }
-
-```
-
-```{r get-equation-rsquared-function, include=F}
-
-lm_eqn = function(m) {
-
-  l <- list(a = format(coef(m)[1], digits = 2),
-      b = format(abs(coef(m)[2]), digits = 2),
-      r2 = format(summary(m)$r.squared, digits = 3));
-
-  if (coef(m)[2] >= 0)  {
-    eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,l)
-  } else {
-    eq <- substitute(italic(y) == a - b %.% italic(x)*","~~italic(r)^2~"="~r2,l)    
-  }
-
-  as.character(as.expression(eq));                 
-}
-
-```
-
-```{r get_qwi_data, include = F, cache = T}
-
-#query qwi employment data
-# apikey = as.character(fread("API key/QWI key", header = F))
-# qwi = get_qwi(years = as.character(2010:2019), 
-#               quarters = c(1, 2, 3, 4), 
-#               industry_level = "4", 
-#               states = "53",
-#               variables = c("sEmp", "Emp"),
-#               endpoint = "rh", 
-#               geography = "county", 
-#               seasonadj = "U", 
-#               apikey = apikey,
-#               processing = "sequential")
-#saveRDS(qwi, "Data/qwi_2010_2019_RH.RDS")
-#
-# qwi = readRDS("Data/qwi_2010_2019_RH.RDS")
-# qwi_ag = setDT(qwi)
-# 
-# qwi_ag = qwi_ag[, NAICS2 := substr(qwi$industry,1,2) ]
-# qwi_ag  = qwi_ag[NAICS2 %in% "11"]
-# qwi_ag = add_qwi_labels(qwi_ag)
-# 
-# save(qwi_ag, file = "Data/qwi_ag_2010_2019_RH.RData")
-
-```
-
-
-```{r upload-clean-awn-data, include=F, cache=T}
-
-# awn <- list.files("Data/awn", pattern=".csv", full.names = TRUE) %>%  lapply(read_csv) %>% bind_rows 
-# 
-# awn.temp.rh.na  <- subset(awn, select = c(TSTAMP_PST, UNIT_ID, STATION_NAME, LATITUDE, LONGITUDE, AIR_TEMP_F, `RELATIVE_HUMIDITY_%`))
-# awn.temp.rh     <- subset(awn.temp.rh.na, AIR_TEMP_F < 500 & `RELATIVE_HUMIDITY_%` < 500)
-# 
-# awn.1h.temp     <- aggregate(awn.temp.rh["AIR_TEMP_F"], list(awn.temp.rh$UNIT_ID, awn.temp.rh$LATITUDE, awn.temp.rh$LONGITUDE, hour=cut(as.POSIXct(awn.temp.rh$TSTAMP_PST)-1, "hour")), mean)
-# awn.1h.rh       <- aggregate(awn.temp.rh["RELATIVE_HUMIDITY_%"], list(awn.temp.rh$UNIT_ID, hour=cut(as.POSIXct(awn.temp.rh$TSTAMP_PST)-1, "hour")), mean)
-# 
-# awn.1h          <- merge(awn.1h.temp, awn.1h.rh, by = c("Group.1","hour"))
-# awn.1h$datetime_PST <- ymd_hms(awn.1h$hour, tz="America/Los_Angeles")
-# awn.1h$year     <- year(awn.1h$datetime_PST)
-# 
-# awn.1h.summary  <- ddply(awn.1h, .(Group.1,year), summarize,  TEMP_F=mean(AIR_TEMP_F), RH=mean(`RELATIVE_HUMIDITY_%`), N=length(year))
-# 
-# setDT(awn.1h)
-# 
-# awn.1h[, hi := heat_index(AIR_TEMP_F, `RELATIVE_HUMIDITY_%`)]
-# 
-# awn.1h <- awn.1h %>% rename(Site.Num.awn=Group.1, Latitude.awn=Group.2, Longitude.awn=Group.3)
-# 
-# rm(awn, awn.1h.rh, awn.1h.temp, awn.temp.rh, awn.temp.rh.na)
-# 
-# setDF(awn.1h); unique(awn.1h[c("Latitude.awn", "Longitude.awn")])
-# 
-# save(awn.1h, file =         "Data/awn.1h.2010.2018.RData")
-# save(awn.1h.summary, file = "Data/awn.1h.summary.2010.2018.RData")
-
-```
-
-```{r upload-clean-epa-data, include=F, cache=T}
-
-#https://aqs.epa.gov/aqsweb/airdata/download_files.html
-
-# epa.2010 <- read.csv("Data/epa/hourly_88101_2010.csv"); epa.2010.wa <- subset(epa.2010, State.Code=='53')
-# epa.2011 <- read.csv("Data/epa/hourly_88101_2011.csv"); epa.2011.wa <- subset(epa.2011, State.Code=='53')
-# epa.2012 <- read.csv("Data/epa/hourly_88101_2012.csv"); epa.2012.wa <- subset(epa.2012, State.Code=='53')
-# epa.2013 <- read.csv("Data/epa/hourly_88101_2013.csv"); epa.2013.wa <- subset(epa.2013, State.Code=='53')
-# epa.2014 <- read.csv("Data/epa/hourly_88101_2014.csv"); epa.2014.wa <- subset(epa.2014, State.Code=='53')
-# epa.2015 <- read.csv("Data/epa/hourly_88101_2015.csv"); epa.2015.wa <- subset(epa.2015, State.Code=='53')
-# epa.2016 <- read.csv("Data/epa/hourly_88101_2016.csv"); epa.2016.wa <- subset(epa.2016, State.Code=='53')
-# epa.2017 <- read.csv("Data/epa/hourly_88101_2017.csv"); epa.2017.wa <- subset(epa.2017, State.Code=='53')
-# epa.2018 <- read.csv("Data/epa/hourly_88101_2018.csv"); epa.2018.wa <- subset(epa.2018, State.Code=='53')
-# 
-# epa <- bind_rows(epa.2010.wa, epa.2011.wa, epa.2012.wa, epa.2013.wa, epa.2014.wa, epa.2015.wa, epa.2016.wa, epa.2017.wa, epa.2018.wa)
-# 
-# epa$datetime_UTC = ymd_hm(paste(epa$Date.GMT, epa$Time.GMT))
-# epa$datetime_PST = as_datetime(epa$datetime, tz = "America/Los_Angeles")
-# 
-# epa$year     <- year(epa$datetime_PST)
-# 
-# epa.1h <- subset(epa, select = c(State.Code, County.Code, County.Name, Site.Num, Latitude, Longitude, Datum, Parameter.Name, datetime_PST, year, Date.Local, Time.Local, Date.GMT, Time.GMT, Sample.Measurement, Units.of.Measure, State.Name, County.Name))
-# 
-# table(epa.1h$County.Name,epa.1h$Site.Num)
-# 
-# epa.1h <- epa.1h %>% unite("Site", County.Name:Site.Num, sep = "-", remove = FALSE)
-# 
-# epa.1h.summary  <- ddply(epa.1h, .(Site,year), summarize,  PM=mean(Sample.Measurement), N=length(year))
-# 
-# setDT(epa.1h)
-# 
-# rm(epa, epa.2010, epa.2011, epa.2012, epa.2013, epa.2014, epa.2015, epa.2016, epa.2017, epa.2018)
-# rm(epa.2010.wa, epa.2011.wa, epa.2012.wa, epa.2013.wa, epa.2014.wa, epa.2015.wa, epa.2016.wa, epa.2017.wa, epa.2018.wa)
-# #rm(epa.nearestAWN.merge, locationsAWN, locationsPM, nearestAWN, set1sp, set2sp)
-# 
-# setDF(epa.1h); unique(epa.1h[c("Latitude", "Longitude")]); unique(epa.1h$Site)
-# 
-# save(epa.1h, file =         "Data/epa.1h.2010.2018.RData")
-# save(epa.1h.summary, file = "Data/epa.1h.summary.2010.2018.RData")
-
-```
-
-```{r merge-awn-epa-data, include=F, cache=T}
-
-# load("Data/epa.1h.summary.2010.2018.RData")
-# load("Data/awn.1h.summary.2010.2018.RData")
-# load("Data/epa.1h.2010.2018.RData")
-# load("Data/awn.1h.2010.2018.RData")
-# 
-# #find nearest weather station
-# locationsPM  = unique(epa.1h[, c("Longitude","Latitude")])
-# locationsAWN = unique(awn.1h[, c("Longitude.awn","Latitude.awn")])
-# 
-# set1sp <- SpatialPoints(locationsPM)
-# set2sp <- SpatialPoints(locationsAWN)
-# 
-# locationsPM$nearest_in_set2 <- apply(gDistance(set2sp, set1sp, byid=T), 1, which.min)
-# 
-# nearestAWN = locationsAWN[locationsPM$nearest_in_set2,]
-# nearestAWN$Longitude.pm = locationsPM$Longitude
-# nearestAWN$Latitude.pm = locationsPM$Latitude
-# 
-# #calculate haversine distance. Returns meters. Assumes radius of the earth is 6378137 m 
-# nearestAWN$dist_m = distHaversine((nearestAWN[,c("Longitude.awn", "Latitude.awn")]), (nearestAWN[,c("Longitude.pm", "Latitude.pm")]))
-# nearestAWN$dist_mi = nearestAWN$dist_m/1609.34
-# 
-# #Merge AWN and EPA data
-# 
-# setDT(nearestAWN)
-# 
-# epa.nearestAWN.merge = merge(epa.1h, nearestAWN, by.x=c("Longitude","Latitude"), by.y=c("Longitude.pm","Latitude.pm"))
-# 
-# setDT(epa.nearestAWN.merge); setkey (epa.nearestAWN.merge, Longitude, Latitude, datetime_PST)
-# setDT(awn.1h); setkey (awn.1h[!is.na(Longitude.awn)], Longitude.awn, Latitude.awn, datetime_PST)
-# 
-# epa.awn.final.wide = merge(epa.nearestAWN.merge, awn.1h, by.x= c("Longitude.awn", "Latitude.awn", "datetime_PST"), by.y = c("Longitude.awn", "Latitude.awn", "datetime_PST"))
-# 
-# epa.awn.final.long <- melt(data = epa.awn.final.wide, id.vars = c("Latitude","Longitude","datetime_PST","Site"), measure.vars = c("Sample.Measurement", "hi"))
-# 
-# setDF(epa.awn.final.long); z<- unique(epa.awn.final.long[c("Latitude", "Longitude")])
-# 
-# save(epa.awn.final.wide, file =         "Data/epa.awn.final.wide.2010.2018.RData")
-# save(epa.awn.final.long, file =         "Data/epa.awn.final.long.2010.2018.RData")
-
-```
 
 ## METHODS
 
@@ -339,8 +57,6 @@ lm_eqn = function(m) {
 
 ```{r summary.tables}
 
-load("Data/epa.awn.final.wide.2010.2018.RData")
-load("Data/epa.awn.final.long.2010.2018.RData")
 n.am.asd.gm.gsd(epa.awn.final.wide$Sample.Measurement)
 n.am.asd.gm.gsd(epa.awn.final.wide$hi)
 
@@ -348,10 +64,65 @@ n.am.asd.gm.gsd(epa.awn.final.wide$hi)
 
 ```{r histograms.temp.rh.hi}
 
-ggplot(epa.awn.final.wide, aes(x=AIR_TEMP_F))            + geom_histogram() + theme_HEI(10) + xlab("Air Temperature (F)") + ylab("Count")
-ggplot(epa.awn.final.wide, aes(x=`RELATIVE_HUMIDITY_%`)) + geom_histogram() + theme_HEI(10) + xlab("Relative Humidity (%)") + ylab("Count")
-ggplot(epa.awn.final.wide, aes(x=hi))                    + geom_histogram() + theme_HEI(10) + xlab("Heat Index") + ylab("Count")
-ggplot(epa.awn.final.wide, aes(x=Sample.Measurement))    + geom_histogram() + theme_HEI(10) + xlab("PM2.5 µg/m3") + ylab("Count")
+ggplot(epa.awn.final.wide, aes(x=AIR_TEMP_F))            + 
+  geom_histogram() + 
+  theme_DEOHS(10) + 
+  xlab("Air Temperature (F)") + 
+  ylab("Count")
+
+ggplot(epa.awn.final.wide, aes(x=`RELATIVE_HUMIDITY_%`)) + 
+  geom_histogram() + 
+  theme_DEOHS(10) + 
+  xlab("Relative Humidity (%)") + 
+ggplot(epa.awn.final.wide, aes(x=hi)) + 
+  geom_histogram() + 
+  theme_DEOHS(10) + 
+  xlab("Heat Index") + 
+  ylab("Count")
+
+asinh_trans <- function(){
+  trans_new(name = 'asinh', transform = function(x) asinh(x), 
+            inverse = function(x) sinh(x))
+}
+
+custom_log_x_trans <- function(){
+  trans_new("custom_log_x",
+            transform = function (x) ( sign(x)*log(abs(x)+1) ),
+            inverse = function (y) ( sign(y)*( exp(abs(y))-1) ),
+            domain = c(-Inf,Inf))
+}
+
+ggplot(epa.awn.final.wide, aes(x=Sample.Measurement)) + 
+  geom_histogram() + 
+  coord_trans(x = "custom_log_x") + 
+  theme_DEOHS(10) + 
+  xlab(expression(paste("P", M[2.5], " (", mu,"g/", m^3,")"))) +
+  ylab("Count")
+
+ggplot(epa.awn.final.wide, 
+       aes(County.Name, Sample.Measurement))  + 
+  geom_violin(fill = "grey") +
+  coord_trans(y = "custom_log_x") + 
+  geom_hline(yintercept = 35, color = "orange") +
+  facet_wrap(~County.Name, scales = "free_x") +
+  theme_DEOHS(10)+ 
+  ylab(expression(paste("P", M[2.5], " (", mu,"g/", m^3,")"))) +
+  xlab("County Name")
+
+
+```
+
+```{e PM25trend, include = F, cache = T}
+
+ggplot(epa.all.1h.summary[, list(PM = mean(PM)), 
+                          by = c("County","year")],
+       aes(year, PM)) + 
+  geom_point(aes(color = `County`)) +
+  theme_DEOHS(10) + 
+  geom_smooth(span = 1, se = T) +
+  ylab(expression(paste("P", M[2.5], " (", mu,"g/", m^3,")"))) +
+  xlab("Year")
+
 
 ```
 
@@ -360,62 +131,275 @@ ggplot(epa.awn.final.wide, aes(x=Sample.Measurement))    + geom_histogram() + th
 ggplot(epa.awn.final.wide[!is.na(hi)], aes( `hi`, y=..density..)) + 
   geom_density() + 
   geom_vline(xintercept = 80, col = "red") +
-  facet_wrap(~Site, scales = "free") +
+  facet_wrap(~County.Name, scales = "free") +
   geom_histogram(aes(y=..density..), alpha=0.5, position="identity") +
   xlim(0, 100) + 
-  theme_HEI(12) + 
+  theme_DEOHS(12) + 
   xlab("Heat Index")
 
-ggplot(epa.awn.final.wide[!is.na(`Sample.Measurement`)], aes( `Sample.Measurement`, y=..density..)) + 
+ggplot(epa.awn.final.wide[!is.na(`Sample.Measurement`)], 
+       aes( `Sample.Measurement`, y=..density..)) + 
   geom_density() + 
+  coord_trans(x = "sqrt") + 
   geom_vline(xintercept = 35, col = "red") +
-  facet_wrap(~Site, scales = "free") +
+  facet_wrap(~County.Name, scales = "free") +
   geom_histogram(aes(y=..density..), alpha=0.5, position="identity")+
   xlim(0, 100) + 
-  theme_HEI(12) + 
-  xlab("PM2.5 µg/m3")
+  theme_DEOHS(12) + 
+  xlab(expression(paste("P", M[2.5], " (", mu,"g/", m^3,")"))) 
 
 ```
 
 ```{r time.series}
 
-ggplot(epa.awn.final.long, aes(x=datetime_PST, y=value, color=factor(variable))) + geom_line() + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Year") + ylab("")
+ggplot(epa.awn.final.wide, 
+       aes(x=datetime_local, 
+           y=Sample.Measurement, 
+           color="PM2.5")) + 
+  geom_line() + 
+  geom_line(data = epa.awn.final.wide,
+            aes(x=datetime_local, 
+           y=hi, 
+           color="Heat Index") ) +
+  facet_wrap(~County.Name) + 
+  theme_DEOHS(12) + 
+  xlab("Year") + 
+  ylab("")
 
+#remove Garfield, Klickitat and Pend Oreille
+
+epa.awn.final.wide = epa.awn.final.wide[!(County.Name %in% c("Garfield","Klickitat","Pend Oreille")),]
 
 ```
 
 ```{r scatter.plots}
 #All data
 
-ggplot(epa.awn.final.wide, aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
+ggplot(epa.awn.final.wide, 
+       aes(x=hi, y=Sample.Measurement)) + 
+  geom_point(size=1) + 
+  facet_wrap(facets = vars(County.Name)) + 
+  theme_DEOHS(12) + 
+  xlab("Heat Index") + 
+  ylab("PM2.5 µg/m3")
 
 #PM data above 35 ug/m3
 
-ggplot(epa.awn.final.wide[epa.awn.final.wide$Sample.Measurement>35], aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
+ggplot(epa.awn.final.wide[epa.awn.final.wide$Sample.Measurement>35], 
+       aes(x=hi, y=Sample.Measurement)) + 
+  geom_point(size=1) + 
+  facet_wrap(~County.Name) + 
+  theme_DEOHS(12) + 
+  xlab("Heat Index") + 
+  ylab("PM2.5 µg/m3")
 
 #Heat index data above 80
 #
 
-
-ggplot(epa.awn.final.wide[epa.awn.final.wide$hi>80], aes(x=hi, y=Sample.Measurement)) + geom_point(size=1) + facet_wrap(facets = vars(Site)) + theme_HEI(12) + xlab("Heat Index") + ylab("PM2.5 µg/m3")
+#consider 85 threshold
+ggplot(epa.awn.final.wide[epa.awn.final.wide$hi>85], 
+       aes(x=hi, y=Sample.Measurement)) + 
+  geom_point(size=1) + 
+  facet_wrap(facets = vars(Site)) + 
+  theme_DEOHS(12) + 
+  xlab("Heat Index") + 
+  ylab("PM2.5 µg/m3")
 
 #density plot
 p_load(viridis)
-df <- fortify(epa.awn.final.wide[`Sample.Measurement`>=35 &
-                          `hi`>=80])
+df <- fortify(epa.awn.final.wide[`Sample.Measurement`>=35 |
+                          `hi`>=85])
 
-ggplot(df[Site != "Clark-23"]) +
-  geom_hex(bins = 12, aes(x    = `Sample.Measurement`,
+#table: burden of workers impacted by combined heat and airborne particulate matter exposures
+p_load(lubridate)
+df[, quarter_val := quarter(hour)]
+epa.awn.final.wide[, quarter_val := quarter(hour)]
+
+above_threshold_county = epa.awn.final.wide[, list("Hours HI" = sum(hi>=85, na.rm=T)/length(hi)*100,
+          "Hours PM2.5" = sum(Sample.Measurement >= 35, na.rm=T)/length(hi)*100 ,
+          "Hours Combined" = sum(Sample.Measurement >= 35 & hi>=85, na.rm=T)/length(hi)*100),
+   by = c("County.Name", "quarter_val")]
+
+write.csv(dcast(above_threshold_county,   as.character(County.Name) ~ quarter_val, 
+      value.var = c("Hours HI","Hours PM2.5", "Hours Combined" )), "Data/high_hours.csv")
+
+#add naics descriptions
+naics = fread("Data/2-6 digit_2017_Codes.csv")
+naics = naics[substr(`2017 NAICS US   Code`, 1, 2) == "11"]
+naics = naics[nchar(`2017 NAICS US   Code`)==4,1:3]
+setkey(naics, `2017 NAICS US   Code`)
+setkey(qwi_ag, industry)
+qwi_ag = naics[qwi_ag]
+
+#Add county names
+p_load(dint)
+p_load(tidycensus)
+p_load(tidyverse)
+p_load(magrittr)
+
+
+fips = copy(fips_codes)
+fips = setDT(fips)
+
+fips = fips[state_code %in% "53",]
+fips[, county := sub(" County", "", county)]
+setkey(fips, county_code)
+setkey(qwi_ag, county)
+setkey(qwi_ag_all, county)
+qwi_ag = qwi_ag[fips]
+qwi_ag_all = qwi_ag_all[fips]
+qwi_ag[, yrq := date_yq(year, quarter)]
+qwi_ag_all[, yrq := date_yq(year, quarter)]
+setnames(qwi_ag, "i.county", "County.Name")
+setnames(qwi_ag_all, "i.county", "County.Name")
+
+qwi_ag_all_summary = 
+  qwi_ag_all[,list("Ag Workers" = sum(Emp)/length(unique(year))), 
+             by = c("County.Name", "quarter")  ]
+
+dcast(qwi_ag_all_summary,   County.Name ~ quarter, 
+      value.var = c("Ag Workers"))
+
+
+ggplot(epa.awn.final.wide[`Sample.Measurement`>=35 &
+                          `hi`>=85]) +
+  geom_hex(bins = 10, aes(x    = `Sample.Measurement`,
                y    = hi,
                fill = ..count..),
            color = "black") +
   scale_fill_viridis_c(option = "inferno") +
   labs(fill = 'Count') +
-  facet_wrap(~Site) +
-  theme_HEI(12) +
+  facet_wrap(~County.Name) +
+  xlab(expression(paste("P", M[2.5], " (", mu,"g/", m^3,")"))) +
+  theme_DEOHS(10) +
   xlim(0,200) +
-  geom_hline(yintercept = 80, col = "red")+
-  geom_vline(xintercept = 35, col = "red")
+  geom_hline(yintercept = 85, col = "red")+
+  geom_vline(xintercept = 35, col = "red") +
+  theme(legend.key.size = unit(3,"line"))
+
+epa.awn.final.wide[, yrq := date_yq(year.x, quarter_val)]
+
+above_threshold_county_hours = 
+  epa.awn.final.wide[, list("Hours HI" = sum(hi>=85, na.rm=T)/length(hi)*2190,
+          "Hours PM2.5" = sum(Sample.Measurement >= 35, na.rm=T)/length(hi)*2190 ,
+          "Hours Combined" = sum(Sample.Measurement >= 35 & hi>=85, na.rm=T)/length(hi)*2190),
+   by = c("County.Name", "quarter_val")]
+
+
+qwi_ag_sum = qwi_ag_all[, list(EmpAll = mean(Emp)), by = c("County.Name","quarter")]
+#hours above threshold 
+above_threshold_county_hours[, County.Name := as.factor(County.Name)]
+qwi_ag_sum[, County.Name := as.factor(County.Name)]
+
+qwi_ag_sum$County.Name <- reorder(qwi_ag_sum$County.Name, qwi_ag_sum$EmpAll)
+above_threshold_county_hours$County.Name <- 
+  factor(above_threshold_county_hours$County.Name, 
+          levels = levels(qwi_ag_sum$County.Name))
+
+setkey(above_threshold_county_hours, County.Name, quarter_val)
+setkey(qwi_ag_sum, EmpAll)
+
+#Figure 1 Employment vs heat/PM
+ggplot(above_threshold_county_hours) +
+  geom_line(aes(quarter_val, `Hours HI`, color = "Hours of Heat exposure"), size = 2) +
+  geom_line(aes(quarter_val, `Hours PM2.5`, color = "Hours of PM exposure"), size = 2) +
+  geom_line(aes(quarter_val, `Hours Combined`, color = "Hours of Combined exposure"), size = 2) +
+  scale_colour_Publication(name = "")+ 
+  geom_bar(data = qwi_ag_sum, 
+         aes(quarter, EmpAll*350/35000, fill = "Agricultural Employment"), 
+         stat="identity", alpha = 0.2) +
+  facet_wrap(~County.Name) +
+  xlab("Quarter of the Year") +
+  scale_x_continuous(labels = function(b) { paste0("Q", b)}) +
+  theme_DEOHS(12) + 
+  scale_fill_manual(name = "", values = "darkgrey") +
+  scale_y_continuous(
+    trans = "sqrt",
+    name = "Number of Hours (h)", 
+    sec.axis = sec_axis(~ . * 35000 / 350, name = "Number of Agricultural Workers",
+                     labels = function(b) { paste0(round(b/1000, 0), "K")})) +
+  theme(legend.key.size = unit(3,"line")) +
+  facet_wrap(~County.Name) 
+
+#Time Series for Yakima
+epa.awn.yakima = epa.awn.final.wide[County.Name == "Yakima",]
+
+#Figure 2, Time Series Yakima
+ggplot(epa.awn.yakima[`yrq` %in% date_yq(c(2015:2018), 3),]) +
+  geom_point(aes(x = datetime_local, y = hi, color = "Heat Index"), alpha = 0.2) + 
+  geom_point(aes(x = datetime_local, 
+                 y = Sample.Measurement, color = "PM Concentration"), alpha = 0.2) +
+  ggtitle("Yakima County, 3rd Quarter") + 
+  theme_DEOHS(12) +
+  scale_colour_Publication(name = "") + 
+   scale_y_continuous(sec.axis = sec_axis(~ . , name = "Particulate Matter PM2.5")) +
+  ylab("Heat Index (F)") + xlab("") +
+  geom_hline(yintercept = 85 , color = "#386cb0", size = 1.5 ) +
+  geom_hline(yintercept = 35 , color = "#fdb462", size = 1.5 ) +
+  theme(axis.title.y = element_text(color="#386cb0"),
+      axis.title.y.right = element_text(color= "#fdb462")) +
+  guides(color = guide_legend(override.aes = list(size=5))) +
+  facet_wrap(~year.x, scales = "free_x", nrow = 1)
+
+epa.awn.okanogan = epa.awn.final.wide[County.Name == "Okanogan",]
+
+#Figure 2, Time Series Okanogan
+ggplot(epa.awn.okanogan[`yrq` %in% date_yq(c(2015:2018), 3),]) +
+  geom_point(aes(x = datetime_local, y = hi, color = "Heat Index"), alpha = 0.2) + 
+  geom_point(aes(x = datetime_local, 
+                 y = Sample.Measurement, color = "PM Concentration"), alpha = 0.2) +
+  theme_DEOHS(12) +
+  scale_colour_Publication(name = "") + 
+  ggtitle("Okanogan County, 3rd Quarter") + 
+   scale_y_continuous(
+     limits = c(0,350),
+    sec.axis = sec_axis(~ . , name = "Particulate Matter PM2.5")) +
+  ylab("Heat Index (F)") + xlab("") +
+  geom_hline(yintercept = 85 , color = "#386cb0", size = 1.5 ) +
+  geom_hline(yintercept = 35 , color = "#fdb462", size = 1.5 ) +
+  theme(axis.title.y = element_text(color="#386cb0"),
+      axis.title.y.right = element_text(color= "#fdb462")) +
+  guides(color = guide_legend(override.aes = list(size=5))) +
+  facet_wrap(~year.x, scales = "free_x", nrow = 1)
+
+qwi_ag[, yrq := date_yq(year, quarter)]
+
+#Figure Seasonal Employment Agriculture
+qwi_ag$County.Name <- 
+  factor(qwi_ag$County.Name, 
+          levels = levels(qwi_ag_sum$County.Name))
+
+ggplot(qwi_ag[County.Name %in% levels(qwi_ag$County.Name)[31:39]], 
+       aes(yrq, Emp, color = `2017 NAICS US Title`)) + 
+  geom_line(size = 1.4) +
+  facet_wrap(~County.Name) +
+  scale_colour_viridis_d(option = "C")+
+  theme_DEOHS(12)
+
+df[, yrq := date_yq(year.y, quarter_val)]
+
+total_excess = df[, length(hour), by = c("yrq","County.Name")]
+
+setkey(total_excess, yrq, County.Name)
+setkey(qwi_ag_res, yrq, i.county )
+
+qwi_ag_res[, Emp := sum(Emp, na.rm=T), by = c("yrq","i.county")]
+
+combined = total_excess[qwi_ag_res]
+
+combined = combined[!is.na(V1)]
+
+summary_list = combined[, list(Exceedances = (V1),
+                Employees = (Emp)), by = c("yrq","County.Name")]
+
+setkey(summary_list, County.Name, yrq)
+
+ggplot(summary_list, aes(yrq, Exceedances, color =  Employees)) + geom_point(size = 3) + 
+  facet_wrap(~County.Name)  + 
+  stat_smooth()+
+    scale_color_viridis("test",trans = "log10") + theme_DEOHS(12) +
+  ylab("Combined Heat and PM Hours") +
+  theme(legend.position = "right", legend.direction="vertical") 
 
 
 
